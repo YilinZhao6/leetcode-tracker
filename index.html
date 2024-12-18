@@ -93,6 +93,7 @@
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
+            margin-right: 10px;
         }
         .button:hover {
             background-color: #0056b3;
@@ -103,6 +104,55 @@
         }
         a:hover {
             text-decoration: underline;
+        }
+        .markdown-content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .markdown-content pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .markdown-content code {
+            background: #f6f8fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: relative;
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+        .close-button {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #666;
+        }
+        .close-button:hover {
+            color: #333;
         }
     </style>
 </head>
@@ -123,6 +173,28 @@
                         <!-- Statistics will be inserted here -->
                     </div>
                 </div>
+
+                <div class="section">
+                    <h2>Problem Solutions</h2>
+                    <ul class="problem-list" id="problemList">
+                        <!-- Problem list will be generated here -->
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>Knowledge Summaries</h2>
+                    <ul class="problem-list" id="summaryList">
+                        <!-- Summary list will be generated here -->
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>Settings</h2>
+                    <div>
+                        <button onclick="handleTokenChange()" class="button">Update GitHub Token</button>
+                        <button onclick="localStorage.removeItem('github_token'); location.reload();" class="button" style="background-color: #dc3545;">Remove Token</button>
+                    </div>
+                </div>
             </div>
             
             <!-- Sidebar -->
@@ -135,38 +207,104 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="section">
-            <h2>Problem Solutions</h2>
-            <ul class="problem-list" id="problemList">
-                <!-- Problem list will be generated here -->
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Knowledge Summaries</h2>
-            <ul class="problem-list" id="summaryList">
-                <!-- Summary list will be generated here -->
-            </ul>
+    <!-- Modal for markdown preview -->
+    <div id="markdownModal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeMarkdownPreview()">×</button>
+            <div id="markdownContent" class="markdown-content"></div>
         </div>
     </div>
 
+    <!-- Include marked.js for markdown rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script>
+        // GitHub API configuration
+        const GITHUB_CONFIG = {
+            owner: 'YilinZhao6',
+            repo: 'leetcode-tracker'
+        };
+
+        // Function to handle GitHub authentication
+        function setGitHubToken(token) {
+            localStorage.setItem('github_token', token);
+            location.reload();
+        }
+
+        function handleTokenChange() {
+            const token = prompt('Enter your GitHub Personal Access Token:');
+            if (token) {
+                setGitHubToken(token);
+            }
+        }
+
         // Function to parse MD files
-        async function parseMDFile(filename) {
+        async function fetchAndRenderMarkdown(url, event) {
+            event.preventDefault();
+            const token = localStorage.getItem('github_token');
+            const headers = {
+                'Accept': 'application/vnd.github.v3.raw',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             try {
-                const response = await fetch(filename);
+                console.log('Fetching from URL:', url);
+                const response = await fetch(url, { headers });
+                
+                if (!response.ok) {
+                    console.error('Response not OK:', {
+                        status: response.status,
+                        statusText: response.statusText
+                    });
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Content received, length:', text.length);
+                
+                if (!text) {
+                    throw new Error('Received empty content');
+                }
+                
+                // Render markdown
+                const htmlContent = marked.parse(text);
+                document.getElementById('markdownContent').innerHTML = htmlContent;
+                document.getElementById('markdownModal').style.display = 'block';
+            } catch (error) {
+                console.error('Detailed error:', error);
+                console.error('Token exists:', !!token);
+                alert(`Error loading content: ${error.message}. Check console for details.`);
+            }
+        }
+
+        function closeMarkdownPreview() {
+            document.getElementById('markdownModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('markdownModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        async function parseMDFile(url) {
+            try {
+                const response = await fetch(url);
                 const text = await response.text();
                 
                 // Parse metadata from markdown
                 const metadata = {};
                 const lines = text.split('\n');
                 
-                // Parse header section (between # and ##)
+                // Parse header section
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (line.startsWith('# [')) {
-                        // Parse problem number and title
                         const match = line.match(/# \[(\d+)\]\. (.+)/);
                         if (match) {
                             metadata.number = parseInt(match[1]);
@@ -183,119 +321,96 @@
                 
                 return metadata;
             } catch (error) {
-                console.error(`Error parsing ${filename}:`, error);
+                console.error(`Error parsing ${url}:`, error);
                 return null;
             }
         }
 
-        // Function to get all MD files from a directory
+        // Function to get all MD files using GitHub API
         async function getAllMDFiles() {
-            // In GitHub Pages, you'll need to maintain a list of files or use the GitHub API
-            // For now, we'll use a manual list
-            const problemFiles = [
-                '27-remove_element.md',
-                // Add more files here
-            ];
+            const token = localStorage.getItem('github_token');
             
-            const summaryFiles = [
-                'tree_traversal_summary.md',
-                // Add more summary files here
-            ];
-            
-            // Parse all problem files
-            const problems = await Promise.all(
-                problemFiles.map(async filename => {
-                    const metadata = await parseMDFile(filename);
-                    return { ...metadata, filename };
-                })
-            );
-            
-            // Parse all summary files
-            const summaries = await Promise.all(
-                summaryFiles.map(async filename => {
-                    const metadata = await parseMDFile(filename);
-                    return { ...metadata, filename };
-                })
-            );
-            
-            return { problems, summaries };
+            async function fetchFiles(path) {
+                const headers = {
+                    'Accept': 'application/vnd.github.v3+json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(
+                    `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`,
+                    { headers }
+                );
+                
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('auth_required');
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.filter(file => file.name.endsWith('.md'))
+                          .map(file => ({
+                              name: file.name,
+                              path: file.path,
+                              download_url: file.download_url
+                          }));
+            }
+
+            try {
+                // Fetch both questions and summaries directories
+                const [problemFiles, summaryFiles] = await Promise.all([
+                    fetchFiles('questions'),
+                    fetchFiles('summaries')
+                ]);
+
+                // Parse all problem files
+                const problems = await Promise.all(
+                    problemFiles.map(async file => {
+                        const metadata = await parseMDFile(file.download_url);
+                        return { 
+                            ...metadata, 
+                            filename: file.path,
+                            download_url: file.download_url  // Ensure we pass the download_url
+                        };
+                    })
+                );
+
+                // Parse all summary files
+                const summaries = await Promise.all(
+                    summaryFiles.map(async file => {
+                        const metadata = await parseMDFile(file.download_url);
+                        return { 
+                            ...metadata, 
+                            filename: file.path,
+                            download_url: file.download_url  // Ensure we pass the download_url
+                        };
+                    })
+                );
+
+                return { problems, summaries };
+            } catch (error) {
+                if (error.message === 'auth_required') {
+                    const token = prompt('Please enter your GitHub Personal Access Token:');
+                    if (token) {
+                        setGitHubToken(token);
+                    }
+                }
+                console.error('Error fetching files:', error);
+                return { problems: [], summaries: [] };
+            }
         }
 
-        // Track problems solved per day
-        const dailyStats = new Map();
-        const problems = [
-            {
-                number: 27,
-                title: "Remove Element",
-                difficulty: "Easy",
-                lastAttempted: "2024-12-8",
-                status: "Solved ✅",
-                filename: "27-remove_element.md"
-            }
-            // Add more problems here
-        ];
-
-        const summaries = [
-            {
-                title: "Tree Traversal Summary",
-                filename: "tree_traversal_summary.md",
-                date: "2024-12-8"
-            }
-            // Add more summaries here
-        ];
-
-        function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === 'lc') {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('contentContainer').style.display = 'block';
-                initializePage();
-            } else {
-                alert('Incorrect password');
-            }
-        }
-
-        function initializePage() {
-            // Initialize problem list
-            const problemList = document.getElementById('problemList');
-            problems.forEach(problem => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <a href="${problem.filename}">
-                        [${problem.number}] ${problem.title} - ${problem.difficulty}
-                        <br>
-                        <small>Last attempted: ${problem.lastAttempted} | ${problem.status}</small>
-                    </a>
-                `;
-                problemList.appendChild(li);
-            });
-
-            // Initialize summary list
-            const summaryList = document.getElementById('summaryList');
-            summaries.forEach(summary => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <a href="${summary.filename}">
-                        ${summary.title}
-                        <br>
-                        <small>Last updated: ${summary.date}</small>
-                    </a>
-                `;
-                summaryList.appendChild(li);
-            });
-
-            // Initialize statistics
-            const statistics = document.getElementById('statistics');
-            statistics.innerHTML = `
-                <p>Total Problems Solved: ${problems.length}</p>
-                <p>Total Summaries: ${summaries.length}</p>
-            `;
-
-            // Initialize calendar with stats
+        // Function to initialize calendar
+        function initializeCalendar(problems) {
             const calendar = document.getElementById('calendar');
             const days = 35; // Show 5 weeks
             
             // Group problems by date
+            const dailyStats = new Map();
             problems.forEach(problem => {
                 const date = problem.lastAttempted;
                 if (!dailyStats.has(date)) {
@@ -315,25 +430,102 @@
                 day.className = 'calendar-day';
                 
                 // Example date mapping (you'll need to adjust this based on your needs)
-                const date = '2024-12-8'; // This should be calculated based on the current date and i
+                const date = new Date();
+                date.setDate(date.getDate() - (days - i));
+                const dateStr = date.toISOString().split('T')[0];
                 
-                if (dailyStats.has(date)) {
+                if (dailyStats.has(dateStr)) {
                     day.className += ' active';
-                    const stats = dailyStats.get(date);
+                    const stats = dailyStats.get(dateStr);
                     
-                    // Add tooltip with stats
                     const tooltip = document.createElement('div');
                     tooltip.className = 'calendar-tooltip';
                     tooltip.innerHTML = `
-                        <strong>${date}</strong><br>
+                        <strong>${dateStr}</strong><br>
                         Solved: ${stats.count}<br>
                         ${stats.problems.join('<br>')}
                     `;
                     day.appendChild(tooltip);
                 }
                 
-                day.textContent = i + 1;
+                day.textContent = date.getDate();
                 calendar.appendChild(day);
+            }
+        }
+
+        // Initialize page content
+        async function initializePage() {
+            try {
+                // Check if we're running on GitHub Pages
+                if (window.location.protocol === 'file:') {
+                    alert('Please access this page through GitHub Pages, not directly from the file system.');
+                    return;
+                }
+
+                const { problems, summaries } = await getAllMDFiles();
+                
+                // Initialize problem list
+                const problemList = document.getElementById('problemList');
+                console.log('Problems:', problems); // Debug log
+                problems.forEach(problem => {
+                    if (!problem.download_url) {
+                        console.warn('Missing download_url for problem:', problem);
+                    }
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <a href="#" onclick="fetchAndRenderMarkdown('${problem.download_url}', event)">
+                            ${problem.number ? `[${problem.number}]` : ''} ${problem.title || 'Untitled'} 
+                            ${problem.difficulty ? `- ${problem.difficulty}` : ''}
+                            <br>
+                            <small>
+                                ${problem.lastAttempted ? `Last attempted: ${problem.lastAttempted}` : ''} 
+                                ${problem.status ? `| ${problem.status}` : ''}
+                            </small>
+                        </a>
+                    `;
+                    problemList.appendChild(li);
+                });
+
+                // Initialize summary list
+                const summaryList = document.getElementById('summaryList');
+                console.log('Summaries:', summaries); // Debug log
+                summaries.forEach(summary => {
+                    if (!summary.download_url) {
+                        console.warn('Missing download_url for summary:', summary);
+                    }
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <a href="#" onclick="fetchAndRenderMarkdown('${summary.download_url}', event)">
+                            ${summary.title || 'Untitled'}
+                            <br>
+                            <small>${summary.date ? `Last updated: ${summary.date}` : ''}</small>
+                        </a>
+                    `;
+                    summaryList.appendChild(li);
+                });
+
+                // Initialize statistics
+                const statistics = document.getElementById('statistics');
+                statistics.innerHTML = `
+                    <p>Total Problems Solved: ${problems.length}</p>
+                    <p>Total Summaries: ${summaries.length}</p>
+                `;
+
+                // Initialize calendar
+                initializeCalendar(problems);
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'lc') {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('contentContainer').style.display = 'block';
+                initializePage();
+            } else {
+                alert('Incorrect password');
             }
         }
 
