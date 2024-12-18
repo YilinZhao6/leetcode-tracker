@@ -47,45 +47,7 @@
         .problem-list li:hover {
             background-color: #e9ecef;
         }
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            margin-top: 20px;
-            font-size: 10px;
-        }
-        .calendar-day {
-            aspect-ratio: 1;
-            background-color: #eee;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            border-radius: 2px;
-            position: relative;
-            cursor: pointer;
-        }
-        .calendar-day.active {
-            background-color: #28a745;
-            color: white;
-        }
-        .calendar-tooltip {
-            display: none;
-            position: absolute;
-            background: #333;
-            color: white;
-            padding: 5px;
-            border-radius: 4px;
-            font-size: 12px;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            z-index: 100;
-        }
-        .calendar-day:hover .calendar-tooltip {
-            display: block;
-        }
+
         .button {
             background-color: #007bff;
             color: white;
@@ -105,55 +67,6 @@
         a:hover {
             text-decoration: underline;
         }
-        .markdown-content {
-            padding: 20px;
-            line-height: 1.6;
-        }
-        .markdown-content pre {
-            background: #f6f8fa;
-            padding: 16px;
-            border-radius: 6px;
-            overflow-x: auto;
-        }
-        .markdown-content code {
-            background: #f6f8fa;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-        .modal-content {
-            position: relative;
-            background: white;
-            margin: 50px auto;
-            padding: 20px;
-            width: 80%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-radius: 8px;
-        }
-        .close-button {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: #666;
-        }
-        .close-button:hover {
-            color: #333;
-        }
     </style>
 </head>
 <body>
@@ -164,60 +77,36 @@
     </div>
 
     <div class="content-container" id="contentContainer">
-        <div style="display: flex; gap: 20px;">
-            <!-- Main content -->
-            <div style="flex: 3;">
-                <div class="section">
-                    <h1>LeetCode Progress Tracker</h1>
-                    <div id="statistics">
-                        <!-- Statistics will be inserted here -->
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2>Problem Solutions</h2>
-                    <ul class="problem-list" id="problemList">
-                        <!-- Problem list will be generated here -->
-                    </ul>
-                </div>
-
-                <div class="section">
-                    <h2>Knowledge Summaries</h2>
-                    <ul class="problem-list" id="summaryList">
-                        <!-- Summary list will be generated here -->
-                    </ul>
-                </div>
-
-                <div class="section">
-                    <h2>Settings</h2>
-                    <div>
-                        <button onclick="handleTokenChange()" class="button">Update GitHub Token</button>
-                        <button onclick="localStorage.removeItem('github_token'); location.reload();" class="button" style="background-color: #dc3545;">Remove Token</button>
-                    </div>
-                </div>
+        <div class="section">
+            <h1>LeetCode Progress Tracker</h1>
+            <div id="statistics">
+                <!-- Statistics will be inserted here -->
             </div>
-            
-            <!-- Sidebar -->
-            <div style="flex: 1;">
-                <div class="section">
-                    <h2>Activity Calendar</h2>
-                    <div class="calendar" id="calendar">
-                        <!-- Calendar will be generated here -->
-                    </div>
-                </div>
+        </div>
+
+        <div class="section">
+            <h2>Problem Solutions</h2>
+            <ul class="problem-list" id="problemList">
+                <!-- Problem list will be generated here -->
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Knowledge Summaries</h2>
+            <ul class="problem-list" id="summaryList">
+                <!-- Summary list will be generated here -->
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Settings</h2>
+            <div>
+                <button onclick="handleTokenChange()" class="button">Update GitHub Token</button>
+                <button onclick="localStorage.removeItem('github_token'); location.reload();" class="button" style="background-color: #dc3545;">Remove Token</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal for markdown preview -->
-    <div id="markdownModal" class="modal">
-        <div class="modal-content">
-            <button class="close-button" onclick="closeMarkdownPreview()">×</button>
-            <div id="markdownContent" class="markdown-content"></div>
-        </div>
-    </div>
-
-    <!-- Include marked.js for markdown rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script>
         // GitHub API configuration
@@ -240,59 +129,9 @@
         }
 
         // Function to parse MD files
-        async function fetchAndRenderMarkdown(url, event) {
-            event.preventDefault();
-            const token = localStorage.getItem('github_token');
-            const headers = {
-                'Accept': 'application/vnd.github.v3.raw',
-            };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
 
-            try {
-                console.log('Fetching from URL:', url);
-                const response = await fetch(url, { headers });
-                
-                if (!response.ok) {
-                    console.error('Response not OK:', {
-                        status: response.status,
-                        statusText: response.statusText
-                    });
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                console.log('Content received, length:', text.length);
-                
-                if (!text) {
-                    throw new Error('Received empty content');
-                }
-                
-                // Render markdown
-                const htmlContent = marked.parse(text);
-                document.getElementById('markdownContent').innerHTML = htmlContent;
-                document.getElementById('markdownModal').style.display = 'block';
-            } catch (error) {
-                console.error('Detailed error:', error);
-                console.error('Token exists:', !!token);
-                alert(`Error loading content: ${error.message}. Check console for details.`);
-            }
-        }
 
-        function closeMarkdownPreview() {
-            document.getElementById('markdownModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('markdownModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        async function parseMDFile(url) {
+        async function parseMDFile(url, isQuestion = true) {
             try {
                 const response = await fetch(url);
                 const text = await response.text();
@@ -304,18 +143,27 @@
                 // Parse header section
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
-                    if (line.startsWith('# [')) {
-                        const match = line.match(/# \[(\d+)\]\. (.+)/);
-                        if (match) {
-                            metadata.number = parseInt(match[1]);
-                            metadata.title = match[2];
+                    if (isQuestion) {
+                        if (line.startsWith('# [')) {
+                            const match = line.match(/# \[(\d+)\]\. (.+)/);
+                            if (match) {
+                                metadata.number = parseInt(match[1]);
+                                metadata.title = match[2];
+                            }
+                        } else if (line.startsWith('**Status**:')) {
+                            metadata.status = line.split(':')[1].trim();
+                        } else if (line.startsWith('**Difficulty**:')) {
+                            metadata.difficulty = line.split(':')[1].trim().replace(/[\[\]]/g, '');
+                        } else if (line.startsWith('**Last Attempted**:')) {
+                            metadata.lastAttempted = line.split(':')[1].trim();
                         }
-                    } else if (line.startsWith('**Status**:')) {
-                        metadata.status = line.split(':')[1].trim();
-                    } else if (line.startsWith('**Difficulty**:')) {
-                        metadata.difficulty = line.split(':')[1].trim().replace(/[\[\]]/g, '');
-                    } else if (line.startsWith('**Last Attempted**:')) {
-                        metadata.lastAttempted = line.split(':')[1].trim();
+                    } else {
+                        // For summary files, get title from first # heading
+                        if (line.startsWith('# ')) {
+                            metadata.title = line.substring(2).trim();
+                            metadata.date = lines[i + 2]?.trim() || 'No date'; // Assuming date is 2 lines after title
+                            break;
+                        }
                     }
                 }
                 
@@ -370,16 +218,16 @@
                 // Parse all problem files
                 const problems = await Promise.all(
                     problemFiles.map(async file => {
-                        const metadata = await parseMDFile(file.download_url);
-                        return { ...metadata, filename: file.path };
+                        const metadata = await parseMDFile(file.download_url, true);
+                        return { ...metadata, filename: file.path, download_url: file.download_url };
                     })
                 );
 
                 // Parse all summary files
                 const summaries = await Promise.all(
                     summaryFiles.map(async file => {
-                        const metadata = await parseMDFile(file.download_url);
-                        return { ...metadata, filename: file.path };
+                        const metadata = await parseMDFile(file.download_url, false);
+                        return { ...metadata, filename: file.path, download_url: file.download_url };
                     })
                 );
 
@@ -396,54 +244,7 @@
             }
         }
 
-        // Function to initialize calendar
-        function initializeCalendar(problems) {
-            const calendar = document.getElementById('calendar');
-            const days = 35; // Show 5 weeks
-            
-            // Group problems by date
-            const dailyStats = new Map();
-            problems.forEach(problem => {
-                const date = problem.lastAttempted;
-                if (!dailyStats.has(date)) {
-                    dailyStats.set(date, {
-                        count: 0,
-                        problems: []
-                    });
-                }
-                const stats = dailyStats.get(date);
-                stats.count++;
-                stats.problems.push(`${problem.number}. ${problem.title}`);
-            });
 
-            // Create calendar days
-            for (let i = 0; i < days; i++) {
-                const day = document.createElement('div');
-                day.className = 'calendar-day';
-                
-                // Example date mapping (you'll need to adjust this based on your needs)
-                const date = new Date();
-                date.setDate(date.getDate() - (days - i));
-                const dateStr = date.toISOString().split('T')[0];
-                
-                if (dailyStats.has(dateStr)) {
-                    day.className += ' active';
-                    const stats = dailyStats.get(dateStr);
-                    
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'calendar-tooltip';
-                    tooltip.innerHTML = `
-                        <strong>${dateStr}</strong><br>
-                        Solved: ${stats.count}<br>
-                        ${stats.problems.join('<br>')}
-                    `;
-                    day.appendChild(tooltip);
-                }
-                
-                day.textContent = date.getDate();
-                calendar.appendChild(day);
-            }
-        }
 
         // Initialize page content
         async function initializePage() {
@@ -455,7 +256,7 @@
                 problems.forEach(problem => {
                     const li = document.createElement('li');
                     li.innerHTML = `
-                        <a href="#" onclick="fetchAndRenderMarkdown('${problem.download_url}', event)">
+                        <a href="viewer.html?file=${problem.download_url}" target="_blank">
                             [${problem.number}] ${problem.title} - ${problem.difficulty}
                             <br>
                             <small>Last attempted: ${problem.lastAttempted} | ${problem.status}</small>
@@ -469,7 +270,7 @@
                 summaries.forEach(summary => {
                     const li = document.createElement('li');
                     li.innerHTML = `
-                        <a href="#" onclick="fetchAndRenderMarkdown('${summary.download_url}', event)">
+                        <a href="viewer.html?file=${summary.download_url}" target="_blank">
                             ${summary.title}
                             <br>
                             <small>Last updated: ${summary.date}</small>

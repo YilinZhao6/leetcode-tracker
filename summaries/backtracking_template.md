@@ -1,4 +1,6 @@
 # Backtracking Code Template
+Date: 12/8/2024
+Yilin Zhao
 
 ## Overview
 Hey, this page is about the template of backtracking in python! You could refer to this code sample snippet whenever you do backtracking problems.
