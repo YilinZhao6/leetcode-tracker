@@ -256,7 +256,7 @@
                 problems.forEach(problem => {
                     const li = document.createElement('li');
                     li.innerHTML = `
-                        <a href="viewer.html?file=${problem.download_url}" target="_blank">
+                        <a href="viewer.html?path=${problem.filename}" target="_blank">
                             [${problem.number}] ${problem.title} - ${problem.difficulty}
                             <br>
                             <small>Last attempted: ${problem.lastAttempted} | ${problem.status}</small>
@@ -270,7 +270,7 @@
                 summaries.forEach(summary => {
                     const li = document.createElement('li');
                     li.innerHTML = `
-                        <a href="viewer.html?file=${summary.download_url}" target="_blank">
+                        <a href="viewer.html?path=${summary.filename}" target="_blank">
                             ${summary.title}
                             <br>
                             <small>Last updated: ${summary.date}</small>
