@@ -371,11 +371,7 @@
                 const problems = await Promise.all(
                     problemFiles.map(async file => {
                         const metadata = await parseMDFile(file.download_url);
-                        return { 
-                            ...metadata, 
-                            filename: file.path,
-                            download_url: file.download_url  // Ensure we pass the download_url
-                        };
+                        return { ...metadata, filename: file.path };
                     })
                 );
 
@@ -383,11 +379,7 @@
                 const summaries = await Promise.all(
                     summaryFiles.map(async file => {
                         const metadata = await parseMDFile(file.download_url);
-                        return { 
-                            ...metadata, 
-                            filename: file.path,
-                            download_url: file.download_url  // Ensure we pass the download_url
-                        };
+                        return { ...metadata, filename: file.path };
                     })
                 );
 
@@ -456,31 +448,17 @@
         // Initialize page content
         async function initializePage() {
             try {
-                // Check if we're running on GitHub Pages
-                if (window.location.protocol === 'file:') {
-                    alert('Please access this page through GitHub Pages, not directly from the file system.');
-                    return;
-                }
-
                 const { problems, summaries } = await getAllMDFiles();
                 
                 // Initialize problem list
                 const problemList = document.getElementById('problemList');
-                console.log('Problems:', problems); // Debug log
                 problems.forEach(problem => {
-                    if (!problem.download_url) {
-                        console.warn('Missing download_url for problem:', problem);
-                    }
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <a href="#" onclick="fetchAndRenderMarkdown('${problem.download_url}', event)">
-                            ${problem.number ? `[${problem.number}]` : ''} ${problem.title || 'Untitled'} 
-                            ${problem.difficulty ? `- ${problem.difficulty}` : ''}
+                            [${problem.number}] ${problem.title} - ${problem.difficulty}
                             <br>
-                            <small>
-                                ${problem.lastAttempted ? `Last attempted: ${problem.lastAttempted}` : ''} 
-                                ${problem.status ? `| ${problem.status}` : ''}
-                            </small>
+                            <small>Last attempted: ${problem.lastAttempted} | ${problem.status}</small>
                         </a>
                     `;
                     problemList.appendChild(li);
@@ -488,17 +466,13 @@
 
                 // Initialize summary list
                 const summaryList = document.getElementById('summaryList');
-                console.log('Summaries:', summaries); // Debug log
                 summaries.forEach(summary => {
-                    if (!summary.download_url) {
-                        console.warn('Missing download_url for summary:', summary);
-                    }
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <a href="#" onclick="fetchAndRenderMarkdown('${summary.download_url}', event)">
-                            ${summary.title || 'Untitled'}
+                            ${summary.title}
                             <br>
-                            <small>${summary.date ? `Last updated: ${summary.date}` : ''}</small>
+                            <small>Last updated: ${summary.date}</small>
                         </a>
                     `;
                     summaryList.appendChild(li);
