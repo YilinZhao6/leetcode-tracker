@@ -1,0 +1,129 @@
+# [480]. Sliding Window Median
+
+**Status**: [Solved ✅ | Partially Solved ⚠️ | In Progress 🚧 | Have Solution Idea 💡]
+
+**Difficulty**: [Easy | Medium | Hard]
+
+**Last Attempted**: YYYY-MM-DD
+
+## Problem Statement
+
+[Copy the problem statement here]
+
+```
+Example 1:
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
+```
+
+## Final Solution
+
+```python
+def solution(nums):
+    # Your working solution here
+    pass
+```
+
+### Solution Explanation
+[Detailed explanation of your working solution, including:]
+- Time Complexity: O(?)
+- Space Complexity: O(?)
+- Key Insights:
+  - Point 1
+  - Point 2
+
+## Previous Attempts
+
+<details>
+<summary>Attempt 1 - Just an Idea, Implemented Using Queue</summary>
+
+```python
+class Solution(object):
+    def medianSlidingWindow(self, nums, k):
+        #intialize variables
+        medians=[]
+        #put the inital elements in the sliding window
+        sliding_window=deque()
+        for i in range (k):
+            sliding_window.append(k)
+        
+
+    #logic for putting new elements into the sliding window (as well as remove old)
+        new_element_pt=k
+        while k<len(nums):
+            sliding_window.popleft()
+            sliding_window.append(nums[k])
+            #find median, and append median
+
+        return median
+            
+```
+
+### What Went Wrong
+- Issue description
+- Failed test case:
+```
+Input: 
+Expected:
+Actual:
+```
+- Why it failed: [Explanation]
+</details>
+
+<details>
+<summary>Attempt 2 - Failed ❌</summary>
+
+```python
+def second_attempt(nums):
+    # Your second attempt code here
+    pass
+```
+
+### What Went Wrong
+- Issue description
+- Failed test case:
+```
+Input: 
+Expected:
+Actual:
+```
+- Why it failed: [Explanation]
+</details>
+
+## Notes
+Heap Basic Usage:
+```python
+
+from heapq import heappush, heappop, heapify
+
+# Creating a heap
+heap = []
+
+# Adding elements (heappush)
+heappush(heap, 5)  # heap = [5]
+heappush(heap, 3)  # heap = [3, 5]
+heappush(heap, 7)  # heap = [3, 5, 7]
+heappush(heap, 1)  # heap = [1, 3, 5, 7]
+
+# Get minimum element without removing (peek)
+min_element = heap[0]  # returns 1
+
+# Remove and return minimum element (heappop)
+smallest = heappop(heap)  # returns 1, heap = [3, 5, 7]
+
+# Convert existing list to heap
+numbers = [5, 3, 7, 1]
+heapify(numbers)  # numbers is now a valid heap [1, 3, 7, 5]
+
+# For max heap, you can use negative numbers
+max_heap = []
+heappush(max_heap, -5)  # Push -5 to get 5
+heappush(max_heap, -3)  # Push -3 to get 3
+largest = -heappop(max_heap)  # Pop and negate to get largest
+
+```
+
+
+## Tags
+#array #hash-table #etc

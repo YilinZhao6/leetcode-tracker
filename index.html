@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Progress Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            max-width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .content-container {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .problem-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .problem-list li {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .problem-list li:hover {
+            background-color: #e9ecef;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-top: 20px;
+            font-size: 10px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+        .calendar-day.active {
+            background-color: #28a745;
+            color: white;
+        }
+        .calendar-tooltip {
+            display: none;
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            z-index: 100;
+        }
+        .calendar-day:hover .calendar-tooltip {
+            display: block;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <h2>Access Required</h2>
+        <input type="password" id="passwordInput" placeholder="Enter access code" style="width: 100%; padding: 8px; margin: 10px 0;">
+        <button onclick="checkPassword()" class="button">Submit</button>
+    </div>
+
+    <div class="content-container" id="contentContainer">
+        <div style="display: flex; gap: 20px;">
+            <!-- Main content -->
+            <div style="flex: 3;">
+                <div class="section">
+                    <h1>LeetCode Progress Tracker</h1>
+                    <div id="statistics">
+                        <!-- Statistics will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div style="flex: 1;">
+                <div class="section">
+                    <h2>Activity Calendar</h2>
+                    <div class="calendar" id="calendar">
+                        <!-- Calendar will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Problem Solutions</h2>
+            <ul class="problem-list" id="problemList">
+                <!-- Problem list will be generated here -->
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Knowledge Summaries</h2>
+            <ul class="problem-list" id="summaryList">
+                <!-- Summary list will be generated here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Function to parse MD files
+        async function parseMDFile(filename) {
+            try {
+                const response = await fetch(filename);
+                const text = await response.text();
+                
+                // Parse metadata from markdown
+                const metadata = {};
+                const lines = text.split('\n');
+                
+                // Parse header section (between # and ##)
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.startsWith('# [')) {
+                        // Parse problem number and title
+                        const match = line.match(/# \[(\d+)\]\. (.+)/);
+                        if (match) {
+                            metadata.number = parseInt(match[1]);
+                            metadata.title = match[2];
+                        }
+                    } else if (line.startsWith('**Status**:')) {
+                        metadata.status = line.split(':')[1].trim();
+                    } else if (line.startsWith('**Difficulty**:')) {
+                        metadata.difficulty = line.split(':')[1].trim().replace(/[\[\]]/g, '');
+                    } else if (line.startsWith('**Last Attempted**:')) {
+                        metadata.lastAttempted = line.split(':')[1].trim();
+                    }
+                }
+                
+                return metadata;
+            } catch (error) {
+                console.error(`Error parsing ${filename}:`, error);
+                return null;
+            }
+        }
+
+        // Function to get all MD files from a directory
+        async function getAllMDFiles() {
+            // In GitHub Pages, you'll need to maintain a list of files or use the GitHub API
+            // For now, we'll use a manual list
+            const problemFiles = [
+                '27-remove_element.md',
+                // Add more files here
+            ];
+            
+            const summaryFiles = [
+                'tree_traversal_summary.md',
+                // Add more summary files here
+            ];
+            
+            // Parse all problem files
+            const problems = await Promise.all(
+                problemFiles.map(async filename => {
+                    const metadata = await parseMDFile(filename);
+                    return { ...metadata, filename };
+                })
+            );
+            
+            // Parse all summary files
+            const summaries = await Promise.all(
+                summaryFiles.map(async filename => {
+                    const metadata = await parseMDFile(filename);
+                    return { ...metadata, filename };
+                })
+            );
+            
+            return { problems, summaries };
+        }
+
+        // Track problems solved per day
+        const dailyStats = new Map();
+        const problems = [
+            {
+                number: 27,
+                title: "Remove Element",
+                difficulty: "Easy",
+                lastAttempted: "2024-12-8",
+                status: "Solved ✅",
+                filename: "27-remove_element.md"
+            }
+            // Add more problems here
+        ];
+
+        const summaries = [
+            {
+                title: "Tree Traversal Summary",
+                filename: "tree_traversal_summary.md",
+                date: "2024-12-8"
+            }
+            // Add more summaries here
+        ];
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'lc') {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('contentContainer').style.display = 'block';
+                initializePage();
+            } else {
+                alert('Incorrect password');
+            }
+        }
+
+        function initializePage() {
+            // Initialize problem list
+            const problemList = document.getElementById('problemList');
+            problems.forEach(problem => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <a href="${problem.filename}">
+                        [${problem.number}] ${problem.title} - ${problem.difficulty}
+                        <br>
+                        <small>Last attempted: ${problem.lastAttempted} | ${problem.status}</small>
+                    </a>
+                `;
+                problemList.appendChild(li);
+            });
+
+            // Initialize summary list
+            const summaryList = document.getElementById('summaryList');
+            summaries.forEach(summary => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <a href="${summary.filename}">
+                        ${summary.title}
+                        <br>
+                        <small>Last updated: ${summary.date}</small>
+                    </a>
+                `;
+                summaryList.appendChild(li);
+            });
+
+            // Initialize statistics
+            const statistics = document.getElementById('statistics');
+            statistics.innerHTML = `
+                <p>Total Problems Solved: ${problems.length}</p>
+                <p>Total Summaries: ${summaries.length}</p>
+            `;
+
+            // Initialize calendar with stats
+            const calendar = document.getElementById('calendar');
+            const days = 35; // Show 5 weeks
+            
+            // Group problems by date
+            problems.forEach(problem => {
+                const date = problem.lastAttempted;
+                if (!dailyStats.has(date)) {
+                    dailyStats.set(date, {
+                        count: 0,
+                        problems: []
+                    });
+                }
+                const stats = dailyStats.get(date);
+                stats.count++;
+                stats.problems.push(`${problem.number}. ${problem.title}`);
+            });
+
+            // Create calendar days
+            for (let i = 0; i < days; i++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day';
+                
+                // Example date mapping (you'll need to adjust this based on your needs)
+                const date = '2024-12-8'; // This should be calculated based on the current date and i
+                
+                if (dailyStats.has(date)) {
+                    day.className += ' active';
+                    const stats = dailyStats.get(date);
+                    
+                    // Add tooltip with stats
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'calendar-tooltip';
+                    tooltip.innerHTML = `
+                        <strong>${date}</strong><br>
+                        Solved: ${stats.count}<br>
+                        ${stats.problems.join('<br>')}
+                    `;
+                    day.appendChild(tooltip);
+                }
+                
+                day.textContent = i + 1;
+                calendar.appendChild(day);
+            }
+        }
+
+        // Handle Enter key in password input
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+    </script>
+</body>
+</html>
