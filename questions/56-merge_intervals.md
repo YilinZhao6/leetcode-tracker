@@ -1,4 +1,4 @@
-# [Problem Number]. Problem Name
+# [56]. Merge Intervals
 
 **Status**: [Solved ✅ | Partially Solved ⚠️ | In Progress 🚧 | Have Solution Idea 💡]
 

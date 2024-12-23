@@ -4,7 +4,7 @@
 
 **Difficulty**: [Easy]
 
-**Last Attempted**: 2024/12/8
+**Last Attempted**: 2024-12-8
 
 ## Problem Statement
 
