@@ -281,3 +281,32 @@ class Solution:
 Need to review this one.
 
 </details>
+
+## Depth First Search
+
+
+<details>
+<summary>Depth First Search (Stack)</summary>
+
+### Explanation
+
+```python
+def dfs_recursive(node):
+    """
+    Recursive DFS for a binary tree.
+    
+    :param node: Current TreeNode being visited
+    """
+    if not node:
+        return
+    
+    print(node.value)  # Process the current node (e.g., print or some operation)
+    
+    dfs_recursive(node.left)   # Visit left subtree
+    dfs_recursive(node.right)  # Visit right subtree
+```
+
+**Notes**
+Need to review this one.
+
+</details>
