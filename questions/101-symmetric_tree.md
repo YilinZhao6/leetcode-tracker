@@ -1,4 +1,4 @@
-# [226]. Invert Binary Tree
+# [101]. Symmetric Tree
 
 **Status**: [Solved ✅]
 
