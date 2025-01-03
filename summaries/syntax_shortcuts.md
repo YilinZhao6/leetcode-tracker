@@ -143,3 +143,47 @@ It would print out:
 ```
 
 </details>
+
+## list(zip)
+
+<details>
+<summary>From LC987</summary>
+
+### Explanation
+
+```python
+        # Sort each column based on depths
+        for i in range(len(result)):
+            # Create pairs of (depth, val) and sort them
+            pairs = list(zip(result_depths[i], result[i]))
+            pairs.sort()  # This will sort by depth first, then by value
+            # Update result with sorted values
+            result[i] = [val for depth, val in pairs]
+```
+
+Pairs would look like:
+
+```python
+pairs = list(zip(result_depths[i], result[i]))
+# pairs would look like:
+# [(0, 3),  # (depth=0, value=3)
+#  (1, 2),  # (depth=1, value=2)
+#  (1, 4),  # (depth=1, value=4)
+#  (2, 1)]  # (depth=2, value=1)
+```
+
+</details>
+
+## Intialize a TreeNode object
+
+<details>
+<summary>From LC654</summary>
+
+### Explanation
+
+```python
+        node=TreeNode()
+```
+
+
+</details>
