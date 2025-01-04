@@ -187,3 +187,20 @@ pairs = list(zip(result_depths[i], result[i]))
 
 
 </details>
+
+## Find Modes Using Counter
+
+<details>
+<summary>From LC501</summary>
+
+### Explanation
+
+```python
+        # Step 3: Find Maximum Frequency
+        max_freq = max(counter.values())
+        
+        # Step 4: Collect All Values with Maximum Frequency
+        modes = [val for val, freq in counter.items() if freq == max_freq]```
+
+
+</details>

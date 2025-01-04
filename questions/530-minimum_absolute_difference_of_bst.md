@@ -1,10 +1,10 @@
-# [98]. Validate Binary Search Tree
+# [530]. Minimum Absolute Difference of BST
 
 **Status**: [Solved ✅]
 
-**Difficulty**: [Easy]
+**Difficulty**: [Medium]
 
-**Last Attempted**: 2025-01-02
+**Last Attempted**: 2024-12-30
 
 ## Problem Statement
 
