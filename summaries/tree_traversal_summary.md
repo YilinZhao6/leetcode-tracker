@@ -310,3 +310,48 @@ def dfs_recursive(node):
 Need to review this one.
 
 </details>
+
+## Two ways to find the depth using dfs
+
+
+<details>
+<summary>Return depth</summary>
+
+### Explanation
+
+```python
+def dfs(node,depth):
+    if not node:
+        return depth
+    left_depth=dfs(node.left,depth+1)
+    right_depth=dfs(node.right, depth+1)
+
+    return max(left_depth, right_depth)
+    
+```
+
+**Notes**
+Focus on the right return value!
+
+</details>
+
+<details>
+<summary>Return 0</summary>
+
+### Explanation
+
+```python
+def dfs(node,depth):
+    if not node:
+        return 0
+    left_depth=dfs(node.left,depth+1)
+    right_depth=dfs(node.right, depth+1)
+
+    return max(left_depth, right_depth)
+    
+```
+
+**Notes**
+Focus on the right return value!
+
+</details>
