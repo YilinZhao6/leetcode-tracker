@@ -344,10 +344,11 @@ Focus on the right return value!
 def dfs(node,depth):
     if not node:
         return 0
-    left_depth=dfs(node.left,depth+1)
-    right_depth=dfs(node.right, depth+1)
+        
+    left_depth=dfs(node.left)
+    right_depth=dfs(node.right)
 
-    return max(left_depth, right_depth)
+    return max(left_depth, right_depth)+1
     
 ```
 

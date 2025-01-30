@@ -200,7 +200,29 @@ pairs = list(zip(result_depths[i], result[i]))
         max_freq = max(counter.values())
         
         # Step 4: Collect All Values with Maximum Frequency
-        modes = [val for val, freq in counter.items() if freq == max_freq]```
+        modes = [val for val, freq in counter.items() if freq == max_freq]
+
+```
+
+
+</details>
+
+
+## hashtable Usage
+
+<details>
+<summary>From LC501</summary>
+
+### Explanation
+
+```python
+        defaultdict(int) #initalize None with 0
+        #find the length of hashtable or counter
+        num_nonempty_keys = sum(1 for v in hashtable.values() if v)
+        len(hashtable)
+
+        del counter[key] #this deletes the item
+```
 
 
 </details>

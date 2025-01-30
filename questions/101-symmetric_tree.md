@@ -45,6 +45,30 @@ class Solution(object):
         
 ```
 
+Jan 18 Solution
+
+```python
+class Solution(object):
+    def isSymmetric(self, root):
+        """
+        :type root: Optional[TreeNode]
+        :rtype: bool
+        """
+        def check_symmetric(node1,node2):
+            if node1 is None and node2 is None:
+                return True
+            if node1 is None or node2 is None:
+                return False
+
+            if node1.val!=node2.val:
+                return False
+            
+            return check_symmetric(node1.left,node2.right) and check_symmetric(node1.right,node2.left)
+        
+        return check_symmetric(root.left,root.right)
+        
+```
+
 ### Solution Explanation
 1. Remember to compare the .val of two nodes instead of two nodes directly!
 2. return only return to the upper level (like jr $ra in MIPS), so ```                return check_two_nodes_equal(node1.left, node2.right) and check_two_nodes_equal(node1.right, node2.left)```

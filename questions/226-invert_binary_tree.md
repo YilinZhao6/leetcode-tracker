@@ -60,6 +60,31 @@ class Solution(object):
         
 ```
 
+Solution Version Jan 18
+
+```python
+class Solution(object):
+    def invertTree(self, root):
+        """
+        :type root: Optional[TreeNode]
+        :rtype: Optional[TreeNode]
+        """
+        def invert_nodes(node):
+            if not node:
+                return
+
+            left_child=node.left
+            right_child=node.right
+            node.left=right_child
+            node.right=left_child
+
+            invert_nodes(node.left)
+            invert_nodes(node.right)
+
+        invert_nodes(root)
+
+        return root  
+```
 ### Solution Explanation
 Two functions. One is to perform swapchild, the other is to traverse all children of a tree to perform swap child.
 
